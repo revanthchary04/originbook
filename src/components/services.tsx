@@ -5,16 +5,18 @@ const ServicesSection: React.FC = () => {
     <section className="mt-10 mb-0 pt-0 pb-0 relative">
       <div className="sm:px-6 lg:px-8 lg:pb-0 max-w-7xl mr-auto ml-auto pt-16 pr-4 pb-16 pl-4">
         <h2 
-          className="text-3xl md:text-4xl font-semibold text-white text-center mb-0" 
+          className="text-3xl md:text-4xl font-semibold text-white text-center mb-4" 
           style={{ 
             fontFamily: 'Inter, sans-serif',
-            letterSpacing: '-0.02em',
-            maskImage: 'linear-gradient(90deg, transparent, black 0%, black 10%, transparent)', 
-            WebkitMaskImage: 'linear-gradient(90deg, transparent, black 0%, black 10%, transparent)' 
+            letterSpacing: '-0.02em'
           }}
         >
           Complete Digital Publishing Suite
         </h2>
+        <p className="text-gray-400 text-sm md:text-base text-center" style={{ fontFamily: 'Inter, sans-serif' }}>
+						Whether you're just starting out or growing fast, our flexible pricing has you covered.
+					</p>
+        
 
         <section className="mt-10 mb-20 pt-0 pb-0 relative">
           <div className="sm:px-6 lg:px-8 lg:pt-8 max-w-full pt-16 pr-4 pb-16 pl-4">
