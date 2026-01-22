@@ -50,7 +50,7 @@ export default function TestimonialsSection() {
         {/* Header */}
         <div className="mb-12 text-center">
           <span className="text-sm font-medium text-rose-400">Testimonials</span>
-          <h2 className="mt-2 text-3xl sm:text-4xl md:text-5xl font-semibold" style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '-0.02em' }}>
+          <h2 className="mt-2 text-3xl md:text-4xl font-semibold" style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '-0.02em' }}>
             What our users say.
           </h2>
           
