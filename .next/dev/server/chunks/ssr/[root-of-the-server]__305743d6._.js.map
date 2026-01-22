@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 18, "column": 0}, "map": {"version":3,"sources":["file:///Volumes/RevanthChary/Chary%20Workspace/Workspace/Websites/originbook/src/app/page.tsx"],"sourcesContent":["import AuraBackground from \"@/components/AuraBackground\";\nimport GridBackground from \"@/components/GridBackground\";\nimport Navigation from \"@/components/Navigation\";\nimport HeroSection from \"@/components/HeroSection\";\n\nexport default function Home() {\n  return (\n    <div className=\"relative min-h-screen bg-black overflow-hidden\">\n      {/* Aura Background with Unicorn Studio Animation */}\n      <AuraBackground />\n      \n      {/* Grid Background */}\n      <GridBackground />\n      \n      {/* Navigation */}\n      <Navigation />\n      \n      {/* Hero Section */}\n      <HeroSection />\n    </div>\n  );\n}\n"],"names":[],"mappings":";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AAKe,SAAS;IACtB,qBACE,8OAAC;QAAI,WAAU;;0BAEb,8OAAC;;;;;0BAGD,8OAAC;;;;;0BAGD,8OAAC;;;;;0BAGD,8OAAC;;;;;;;;;;;AAGP"}}]
-}
