@@ -103,7 +103,6 @@ export default function UploadPage() {
           title: file.name.replace('.pdf', ''),
           slug: slug,
           pdf_url: publicUrl,
-          page_count: 0, // Will be updated after processing
         })
         .select()
         .single();
