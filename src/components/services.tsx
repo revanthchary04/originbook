@@ -5,8 +5,10 @@ const ServicesSection: React.FC = () => {
     <section className="mt-10 mb-0 pt-0 pb-0 relative">
       <div className="sm:px-6 lg:px-8 lg:pb-0 max-w-7xl mr-auto ml-auto pt-16 pr-4 pb-16 pl-4">
         <h2 
-          className="text-2xl font-medium text-white tracking-tighter text-center mb-0 sm:text-5xl" 
+          className="text-2xl font-semibold text-white text-center mb-0 sm:text-5xl" 
           style={{ 
+            fontFamily: 'Inter, sans-serif',
+            letterSpacing: '-0.02em',
             maskImage: 'linear-gradient(90deg, transparent, black 0%, black 10%, transparent)', 
             WebkitMaskImage: 'linear-gradient(90deg, transparent, black 0%, black 10%, transparent)' 
           }}
