@@ -10,7 +10,7 @@ import {
 import { cn } from '@/lib/utils';
 import { CheckCircleIcon, StarIcon } from 'lucide-react';
 import Link from 'next/link';
-import { motion, Transition } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 type FREQUENCY = 'monthly' | 'yearly';
 const frequencies: FREQUENCY[] = ['monthly', 'yearly'];
@@ -237,7 +237,11 @@ export function PricingCard({
 type BorderTrailProps = {
   className?: string;
   size?: number;
-  transition?: Transition;
+  transition?: {
+    repeat?: number;
+    duration?: number;
+    ease?: 'linear' | 'easeIn' | 'easeOut' | 'easeInOut';
+  };
   delay?: number;
   onAnimationComplete?: () => void;
   style?: React.CSSProperties;
@@ -270,8 +274,9 @@ export function BorderTrail({
           offsetDistance: ['0%', '100%'],
         }}
         transition={{
-          ...(transition ?? BASE_TRANSITION),
-          delay: delay,
+          ...BASE_TRANSITION,
+          ...transition,
+          delay,
         }}
         onAnimationComplete={onAnimationComplete}
       />
