@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 
 const AboutSection: React.FC = () => {
   useEffect(() => {
-    const container = document.querySelector('.karaoke-container');
+    const container = document.querySelector('.karaoke-container') as HTMLElement | null;
     if (!container || container.dataset.processed) return;
 
     const wrapWords = (node: Node) => {
