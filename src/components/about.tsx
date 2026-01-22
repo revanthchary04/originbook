@@ -5,7 +5,7 @@ const AboutSection: React.FC = () => {
     const container = document.querySelector('.karaoke-container') as HTMLElement | null;
     if (!container || container.dataset.processed) return;
 
-    const wrapWords = (node: Node) => {
+    const wrapWords = (node: ChildNode) => {
       if (node.nodeType === 3) {
         const words = node.textContent?.match(/\S+|\s+/g) || [];
         const fragment = document.createDocumentFragment();
