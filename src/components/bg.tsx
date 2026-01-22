@@ -10,7 +10,7 @@ export default function AuraBackground() {
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v1.4.29/dist/unicornStudio.umd.js';
       script.onload = function () {
-        if (!window.UnicornStudio.isInitialized) {
+        if (window.UnicornStudio && !window.UnicornStudio.isInitialized && window.UnicornStudio.init) {
           window.UnicornStudio.init();
           window.UnicornStudio.isInitialized = true;
         }
@@ -48,9 +48,9 @@ export default function AuraBackground() {
 // TypeScript declaration for UnicornStudio
 declare global {
   interface Window {
-    UnicornStudio: {
+    UnicornStudio?: {
       isInitialized: boolean;
-      init: () => void;
+      init?: () => void;
     };
   }
 }
