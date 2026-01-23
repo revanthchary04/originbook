@@ -4,19 +4,19 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  ArrowLeft, 
-  Save, 
-  Eye, 
-  Upload, 
-  Loader2,
-  Image as ImageIcon,
-  Type,
-  Download,
-  Share2,
-  Trash2
-} from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Flipbook } from '@/types/flipbook';
+import { FlipbookCustomizeSidebar } from '@/components/flipbook-customize-sidebar';
+import { FlipbookBottomToolbar } from '@/components/flipbook-bottom-toolbar';
+import {
+  IconChevronLeft,
+  IconChevronRight,
+  IconSearch,
+  IconArrowNarrowLeft,
+  IconArrowNarrowRight,
+} from "@tabler/icons-react"
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 export default function FlipbookEditorPage() {
   const params = useParams();
@@ -28,16 +28,51 @@ export default function FlipbookEditorPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState('title');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
 
   // Form states
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [watermarkText, setWatermarkText] = useState('');
-  const [watermarkOpacity, setWatermarkOpacity] = useState(0.3);
-  const [allowDownload, setAllowDownload] = useState(false);
-  const [isPublished, setIsPublished] = useState(false);
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    watermark_text: '',
+    watermark_opacity: 0.3,
+    allow_download: false,
+    is_published: false,
+    logo_url: null as string | null,
+    logo_file: null as File | null,
+    background_color: '#f0f0f0',
+    page_effect: 'flip',
+    // New settings
+    share_enabled: true,
+    print_enabled: true,
+    download_enabled: true,
+    text_selection_enabled: true,
+    thumbnails_enabled: true,
+    notes_enabled: true,
+    sound_enabled: true,
+    fullscreen_enabled: true,
+    zoom_enabled: true,
+    auto_page_turn: false,
+    search_enabled: true,
+    pinned_sidebar: false,
+    privacy_mode: 'public',
+    password: '',
+    skin: 'default',
+    favicon_url: '',
+    cta_button_text: '',
+    cta_button_url: '',
+    lead_capture_enabled: false,
+    toc_enabled: false,
+    page_turn_mode: 'click',
+    book_layout: 'double',
+    interface_scaling: 100,
+    hardcover: false,
+    book_thickness: true,
+    shadow_depth: 'medium',
+    rtl: false,
+  });
 
   useEffect(() => {
     fetchFlipbook();
@@ -54,13 +89,46 @@ export default function FlipbookEditorPage() {
       if (error) throw error;
 
       setFlipbook(data);
-      setTitle(data.title);
-      setDescription(data.description || '');
-      setWatermarkText(data.watermark_text || '');
-      setWatermarkOpacity(data.watermark_opacity || 0.3);
-      setAllowDownload(data.allow_download);
-      setIsPublished(data.is_published);
-      setLogoPreview(data.logo_url);
+      setFormData({
+        title: data.title || '',
+        description: data.description || '',
+        watermark_text: data.watermark_text || '',
+        watermark_opacity: data.watermark_opacity || 0.3,
+        allow_download: data.allow_download || false,
+        is_published: data.is_published || false,
+        logo_url: data.logo_url || null,
+        logo_file: null,
+        background_color: data.background_color || '#f5f5f5',
+        page_effect: data.page_effect || 'flip',
+        // New settings
+        share_enabled: data.share_enabled ?? true,
+        print_enabled: data.print_enabled ?? true,
+        download_enabled: data.download_enabled ?? true,
+        text_selection_enabled: data.text_selection_enabled ?? true,
+        thumbnails_enabled: data.thumbnails_enabled ?? true,
+        notes_enabled: data.notes_enabled ?? true,
+        sound_enabled: data.sound_enabled ?? true,
+        fullscreen_enabled: data.fullscreen_enabled ?? true,
+        zoom_enabled: data.zoom_enabled ?? true,
+        auto_page_turn: data.auto_page_turn ?? false,
+        search_enabled: data.search_enabled ?? true,
+        pinned_sidebar: data.pinned_sidebar ?? false,
+        privacy_mode: data.privacy_mode || 'public',
+        password: data.password || '',
+        skin: data.skin || 'default',
+        favicon_url: data.favicon_url || '',
+        cta_button_text: data.cta_button_text || '',
+        cta_button_url: data.cta_button_url || '',
+        lead_capture_enabled: data.lead_capture_enabled ?? false,
+        toc_enabled: data.toc_enabled ?? false,
+        page_turn_mode: data.page_turn_mode || 'click',
+        book_layout: data.book_layout || 'double',
+        interface_scaling: data.interface_scaling || 100,
+        hardcover: data.hardcover ?? false,
+        book_thickness: data.book_thickness ?? true,
+        shadow_depth: data.shadow_depth || 'medium',
+        rtl: data.rtl ?? false,
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load flipbook');
     } finally {
@@ -68,12 +136,8 @@ export default function FlipbookEditorPage() {
     }
   };
 
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setLogoFile(file);
-      setLogoPreview(URL.createObjectURL(file));
-    }
+  const handleUpdate = (updates: Record<string, unknown>) => {
+    setFormData(prev => ({ ...prev, ...updates }));
   };
 
   const handleSave = async () => {
@@ -81,16 +145,16 @@ export default function FlipbookEditorPage() {
     setError(null);
 
     try {
-      let logoUrl = flipbook?.logo_url;
+      let logoUrl = formData.logo_url;
 
       // Upload logo if changed
-      if (logoFile) {
+      if (formData.logo_file) {
         const { data: { user } } = await supabase.auth.getUser();
-        const fileName = `${user?.id}/${flipbookId}/logo-${Date.now()}.${logoFile.name.split('.').pop()}`;
+        const fileName = `${user?.id}/${flipbookId}/logo-${Date.now()}.${formData.logo_file.name.split('.').pop()}`;
         
         const { error: uploadError } = await supabase.storage
           .from('flipbooks')
-          .upload(fileName, logoFile);
+          .upload(fileName, formData.logo_file);
 
         if (uploadError) throw uploadError;
 
@@ -105,12 +169,12 @@ export default function FlipbookEditorPage() {
       const { error: updateError } = await supabase
         .from('flipbooks')
         .update({
-          title,
-          description,
-          watermark_text: watermarkText,
-          watermark_opacity: watermarkOpacity,
-          allow_download: allowDownload,
-          is_published: isPublished,
+          title: formData.title,
+          description: formData.description,
+          watermark_text: formData.watermark_text,
+          watermark_opacity: formData.watermark_opacity,
+          allow_download: formData.allow_download,
+          is_published: formData.is_published,
           logo_url: logoUrl,
         })
         .eq('id', flipbookId);
@@ -126,45 +190,20 @@ export default function FlipbookEditorPage() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this flipbook? This action cannot be undone.')) {
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('flipbooks')
-        .delete()
-        .eq('id', flipbookId);
-
-      if (error) throw error;
-
-      router.push('/dashboard');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete');
-    }
-  };
-
-  const copyShareLink = () => {
-    const url = `${window.location.origin}/view/${flipbook?.slug}`;
-    navigator.clipboard.writeText(url);
-    alert('Share link copied to clipboard!');
-  };
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-white animate-spin" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin" />
       </div>
     );
   }
 
   if (!flipbook) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <p className="text-white mb-4">Flipbook not found</p>
-          <Link href="/dashboard" className="text-blue-400 hover:text-blue-300">
+          <p className="mb-4">Flipbook not found</p>
+          <Link href="/dashboard" className="text-primary hover:underline">
             Back to Dashboard
           </Link>
         </div>
@@ -173,232 +212,177 @@ export default function FlipbookEditorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black">
-      {/* Header */}
-      <nav className="border-b border-white/10 sticky top-0 bg-black/80 backdrop-blur-sm z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <Link href="/dashboard" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </Link>
-            <div className="flex items-center gap-3">
-              <Link
-                href={`/view/${flipbook.slug}`}
-                target="_blank"
-                className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-400 hover:text-white transition-colors"
+    <div className="flex h-screen bg-neutral-100 dark:bg-neutral-950">
+      {/* Left Sidebar - Customize Panel */}
+      <FlipbookCustomizeSidebar
+        flipbook={formData}
+        onUpdate={handleUpdate}
+        onSave={handleSave}
+        saving={saving}
+      />
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col">
+        {/* Top Bar */}
+        <div className="h-12 bg-white dark:bg-neutral-900 border-b flex items-center justify-between px-4">
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium truncate max-w-md">{formData.title || 'Untitled'}</span>
+          </div>
+          
+          {/* Page Navigation */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">page</span>
+            <Input
+              type="text"
+              value={currentPage}
+              onChange={(e) => {
+                const page = parseInt(e.target.value);
+                if (!isNaN(page) && page >= 1) {
+                  setCurrentPage(Math.min(page, flipbook.page_count || page));
+                }
+              }}
+              className="w-12 h-8 text-center text-sm"
+            />
+            <span className="text-sm text-muted-foreground">of {flipbook.page_count || '?'}</span>
+          </div>
+
+          {/* Search */}
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <IconSearch className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Book Viewer Area */}
+        <div 
+          className="flex-1 relative overflow-hidden"
+          style={{ backgroundColor: formData.background_color }}
+        >
+          {/* Navigation Arrows */}
+          <button
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-3 hover:bg-black/5 rounded-lg transition-colors"
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage <= 1}
+          >
+            <IconChevronLeft className="h-8 w-8 text-gray-400" />
+          </button>
+
+          <button
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-3 hover:bg-black/5 rounded-lg transition-colors"
+            onClick={() => setCurrentPage(p => Math.min(p + 1, flipbook.page_count || p + 1))}
+          >
+            <IconChevronRight className="h-8 w-8 text-gray-400" />
+          </button>
+
+          {/* First/Last Page Buttons */}
+          <button
+            className="absolute left-4 bottom-4 z-20 p-2 hover:bg-black/5 rounded transition-colors"
+            onClick={() => setCurrentPage(1)}
+            title="First page"
+          >
+            <IconArrowNarrowLeft className="h-5 w-5 text-gray-400" />
+          </button>
+
+          <button
+            className="absolute right-4 bottom-4 z-20 p-2 hover:bg-black/5 rounded transition-colors"
+            onClick={() => setCurrentPage(flipbook.page_count || 1)}
+            title="Last page"
+          >
+            <IconArrowNarrowRight className="h-5 w-5 text-gray-400" />
+          </button>
+
+          {/* Book Display */}
+          <div className="flex items-center justify-center h-full p-8">
+            <div className="relative" style={{ perspective: '2000px' }}>
+              {/* Book Shadow */}
+              <div className="absolute inset-0 -bottom-6 bg-black/15 blur-2xl rounded-lg transform translate-y-6 scale-95" />
+              
+              {/* Single Page Book View */}
+              <div 
+                className="relative bg-white rounded shadow-2xl overflow-hidden"
+                style={{
+                  width: '500px',
+                  height: '650px',
+                  boxShadow: formData.book_thickness !== false 
+                    ? '0 0 0 1px rgba(0,0,0,0.05), 0 25px 50px -12px rgba(0,0,0,0.25), -3px 0 0 #e5e5e5, -6px 0 0 #f0f0f0, -9px 0 0 #f5f5f5'
+                    : '0 25px 50px -12px rgba(0,0,0,0.25)',
+                }}
               >
-                <Eye className="w-4 h-4" />
-                Preview
-              </Link>
-              <button
-                onClick={copyShareLink}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-400 hover:text-white transition-colors"
-              >
-                <Share2 className="w-4 h-4" />
-                Share
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="flex items-center gap-2 px-4 py-1.5 bg-white text-black text-sm font-medium rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
-              >
-                {saving ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                {flipbook.pdf_url ? (
+                  <iframe
+                    src={`${flipbook.pdf_url}#page=${currentPage}&view=FitH`}
+                    className="w-full h-full border-0"
+                    title="PDF Preview"
+                  />
                 ) : (
-                  <Save className="w-4 h-4" />
+                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                    No PDF uploaded
+                  </div>
                 )}
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <main className="max-w-4xl mx-auto px-4 py-8">
-        {error && (
-          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-            <p className="text-red-400">{error}</p>
-          </div>
-        )}
-
-        <div className="space-y-8">
-          {/* Basic Info */}
-          <section className="bg-neutral-900 border border-white/10 rounded-2xl p-6">
-            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <Type className="w-5 h-5" />
-              Basic Information
-            </h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                  Title
-                </label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-4 py-3 bg-neutral-800 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="My Flipbook"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                  Description
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={3}
-                  className="w-full px-4 py-3 bg-neutral-800 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                  placeholder="Add a description..."
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* Branding */}
-          <section className="bg-neutral-900 border border-white/10 rounded-2xl p-6">
-            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <ImageIcon className="w-5 h-5" />
-              Branding
-            </h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                  Logo
-                </label>
-                <div className="flex items-center gap-4">
-                  {logoPreview && (
+                
+                {/* Logo Overlay */}
+                {formData.logo_url && (
+                  <div className="absolute top-4 right-4 z-10">
                     <img
-                      src={logoPreview}
-                      alt="Logo preview"
-                      className="h-12 object-contain bg-neutral-800 rounded-lg px-4 py-2"
+                      src={formData.logo_url}
+                      alt="Logo"
+                      className="h-8 object-contain"
                     />
-                  )}
-                  <label className="flex items-center gap-2 px-4 py-2 bg-neutral-800 border border-white/10 rounded-lg cursor-pointer hover:bg-neutral-700 transition-colors">
-                    <Upload className="w-4 h-4 text-gray-400" />
-                    <span className="text-gray-400 text-sm">Upload Logo</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleLogoChange}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                  Watermark Text
-                </label>
-                <input
-                  type="text"
-                  value={watermarkText}
-                  onChange={(e) => setWatermarkText(e.target.value)}
-                  className="w-full px-4 py-3 bg-neutral-800 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Your watermark text"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                  Watermark Opacity: {Math.round(watermarkOpacity * 100)}%
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  value={watermarkOpacity}
-                  onChange={(e) => setWatermarkOpacity(parseFloat(e.target.value))}
-                  className="w-full accent-blue-500"
+                  </div>
+                )}
+
+                {/* Watermark */}
+                {formData.watermark_text && (
+                  <div
+                    className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
+                    style={{ opacity: formData.watermark_opacity }}
+                  >
+                    <p className="text-4xl font-bold text-gray-400 rotate-[-30deg]">
+                      {formData.watermark_text}
+                    </p>
+                  </div>
+                )}
+
+                {/* Page edge effect */}
+                <div 
+                  className="absolute right-0 top-0 bottom-0 w-3 pointer-events-none"
+                  style={{
+                    background: 'linear-gradient(to right, transparent, rgba(0,0,0,0.05))',
+                  }}
                 />
               </div>
             </div>
-          </section>
+          </div>
 
-          {/* Settings */}
-          <section className="bg-neutral-900 border border-white/10 rounded-2xl p-6">
-            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <Download className="w-5 h-5" />
-              Settings
-            </h2>
-            <div className="space-y-4">
-              <label className="flex items-center justify-between p-4 bg-neutral-800 rounded-lg cursor-pointer">
-                <div>
-                  <p className="text-white font-medium">Allow Download</p>
-                  <p className="text-gray-400 text-sm">Let viewers download the original PDF</p>
-                </div>
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    checked={allowDownload}
-                    onChange={(e) => setAllowDownload(e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-neutral-700 rounded-full peer peer-checked:bg-blue-500 transition-colors"></div>
-                  <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full peer-checked:translate-x-5 transition-transform"></div>
-                </div>
-              </label>
-              <label className="flex items-center justify-between p-4 bg-neutral-800 rounded-lg cursor-pointer">
-                <div>
-                  <p className="text-white font-medium">Publish</p>
-                  <p className="text-gray-400 text-sm">Make this flipbook publicly accessible</p>
-                </div>
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    checked={isPublished}
-                    onChange={(e) => setIsPublished(e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-neutral-700 rounded-full peer peer-checked:bg-green-500 transition-colors"></div>
-                  <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full peer-checked:translate-x-5 transition-transform"></div>
-                </div>
-              </label>
-            </div>
-          </section>
-
-          {/* Share Link */}
-          <section className="bg-neutral-900 border border-white/10 rounded-2xl p-6">
-            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <Share2 className="w-5 h-5" />
-              Share Link
-            </h2>
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                readOnly
-                value={`${typeof window !== 'undefined' ? window.location.origin : ''}/view/${flipbook.slug}`}
-                className="flex-1 px-4 py-3 bg-neutral-800 border border-white/10 rounded-lg text-gray-400 focus:outline-none"
-              />
-              <button
-                onClick={copyShareLink}
-                className="px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                Copy
-              </button>
-            </div>
-          </section>
-
-          {/* Danger Zone */}
-          <section className="bg-red-950/20 border border-red-500/20 rounded-2xl p-6">
-            <h2 className="text-lg font-semibold text-red-400 mb-4 flex items-center gap-2">
-              <Trash2 className="w-5 h-5" />
-              Danger Zone
-            </h2>
-            <p className="text-gray-400 text-sm mb-4">
-              Once you delete a flipbook, there is no going back. Please be certain.
-            </p>
-            <button
-              onClick={handleDelete}
-              className="px-4 py-2 bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg hover:bg-red-500/30 transition-colors"
-            >
-              Delete Flipbook
-            </button>
-          </section>
+          {/* Bottom Toolbar */}
+          <FlipbookBottomToolbar
+            onThumbnails={() => {}}
+            onNotes={() => {}}
+            onShare={() => {
+              navigator.clipboard.writeText(`${window.location.origin}/view/${flipbook.slug}`);
+              alert('Link copied!');
+            }}
+            onPrint={() => window.print()}
+            onDownload={() => {
+              if (flipbook.pdf_url) {
+                window.open(flipbook.pdf_url, '_blank');
+              }
+            }}
+            onToggleSound={() => setIsMuted(!isMuted)}
+            onZoomIn={() => {}}
+            onFullscreen={() => {
+              document.documentElement.requestFullscreen?.();
+            }}
+            isMuted={isMuted}
+          />
         </div>
-      </main>
+      </div>
+
+      {/* Error Toast */}
+      {error && (
+        <div className="fixed bottom-4 right-4 p-4 bg-destructive text-destructive-foreground rounded-lg shadow-lg z-50">
+          {error}
+        </div>
+      )}
     </div>
   );
 }

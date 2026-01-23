@@ -99,7 +99,7 @@ export default function UploadPage() {
       const { data: flipbook, error: dbError } = await supabase
         .from('flipbooks')
         .insert({
-          user_id: user.id,
+          author_id: user.id, // Updated from user_id to author_id
           title: file.name.replace('.pdf', ''),
           slug: slug,
           pdf_url: publicUrl,

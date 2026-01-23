@@ -76,16 +76,16 @@ ALTER TABLE flipbook_views ENABLE ROW LEVEL SECURITY;
 
 -- Flipbooks policies
 CREATE POLICY "Users can view their own flipbooks" ON flipbooks
-  FOR SELECT USING (auth.uid() = user_id);
+  FOR SELECT USING (auth.uid() = author_id);
 
 CREATE POLICY "Users can create their own flipbooks" ON flipbooks
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+  FOR INSERT WITH CHECK (auth.uid() = author_id);
 
 CREATE POLICY "Users can update their own flipbooks" ON flipbooks
-  FOR UPDATE USING (auth.uid() = user_id);
+  FOR UPDATE USING (auth.uid() = author_id);
 
 CREATE POLICY "Users can delete their own flipbooks" ON flipbooks
-  FOR DELETE USING (auth.uid() = user_id);
+  FOR DELETE USING (auth.uid() = author_id);
 
 CREATE POLICY "Anyone can view published flipbooks by slug" ON flipbooks
   FOR SELECT USING (is_published = true);
